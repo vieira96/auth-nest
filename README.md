@@ -131,6 +131,29 @@ npm run build
 
 A estratégia de qualidade prevê testes unitários, de integração com PostgreSQL isolado e E2E para login, JWT, 401, 403, 429 e acesso administrativo. A CI em GitHub Actions executa em push e pull request: instalação limpa, lint, testes, E2E e build. Não há CD ou deploy configurado.
 
+## Estratégia de branches
+
+~~~text
+feature/nome-da-funcionalidade
+          ↓ pull request + CI aprovada
+         dev
+          ↓ pull request + CI aprovada
+        main
+~~~
+
+- main: versão estável; recebe pull requests somente de dev.
+- dev: branch de integração; recebe pull requests das branches de funcionalidade.
+- feature/nome-da-funcionalidade: uma branch por funcionalidade nova.
+
+O workflow bloqueia pull requests diretas de feature para main. Quando o repositório estiver no GitHub, configure uma ruleset ou branch protection para dev e main com:
+
+1. Pull request obrigatório antes do merge.
+2. Checks obrigatórios: Política de branches e Qualidade.
+3. Branch atualizada antes do merge.
+4. Bloqueio de push direto, force push e exclusão de branch.
+
+A CI faz a validação; a ruleset do GitHub é a configuração que realmente impede o merge enquanto os checks não passarem.
+
 ## Roadmap
 
 - [x] Inicializar NestJS com TypeScript estrito

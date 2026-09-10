@@ -3,11 +3,28 @@ name: CI
 on:
   push:
   pull_request:
+    branches: [dev, main]
 
 permissions:
   contents: read
 
 jobs:
+  branch-policy:
+    name: Política de branches
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    env:
+      BASE_BRANCH: ${{ github.base_ref }}
+      HEAD_BRANCH: ${{ github.head_ref }}
+
+    steps:
+      - name: Validar origem do pull request
+        run: |
+          if [[ "$BASE_BRANCH" == "main" && "$HEAD_BRANCH" != "dev" ]]; then
+            echo "A branch main aceita pull requests somente da branch dev."
+            exit 1
+          fi
+
   quality:
     name: Qualidade
     runs-on: ubuntu-latest
@@ -35,5 +52,5 @@ jobs:
       - name: Executar testes E2E
         run: npm run test:e2e
 
-      - name: Validar build de produção
+      - name: Validar build
         run: npm run build
