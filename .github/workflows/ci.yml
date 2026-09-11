@@ -34,6 +34,10 @@ jobs:
     name: Qualidade
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      # O Prisma Client só precisa que a variável exista para ser gerado;
+      # esta URL não se conecta a banco algum durante esta etapa.
+      DATABASE_URL: postgresql://auth:ci-password@localhost:5432/auth?schema=public
 
     steps:
       - name: Baixar o código
