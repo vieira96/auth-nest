@@ -1,0 +1,13 @@
+enum RoleName {
+  ADMIN
+  USER
+}
+
+model Role {
+  id        String   @id @default(uuid())
+  name      RoleName @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("roles")
+}
