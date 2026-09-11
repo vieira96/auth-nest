@@ -5,6 +5,9 @@
 /dist
 *.tsbuildinfo
 
+# Prisma Client (generated from prisma/schema.prisma)
+/src/generated/prisma
+
 # environment files
 .env
 .env.*
