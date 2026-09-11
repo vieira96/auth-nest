@@ -35,24 +35,10 @@ USER_ID="${USER_ID:-$(id -u)}"
 GROUP_ID="${GROUP_ID:-$(id -g)}"
 
 log "Construindo a imagem e iniciando os containers"
-docker compose up -d --build
+# O entrypoint da API instala dependências quando necessário, gera o client,
+# aplica migrations e executa o seed antes do Nest iniciar.
+docker compose up -d --build --wait
 
-LOCK_HASH="$(sha256sum package-lock.json | cut -d ' ' -f 1)"
-INSTALLED_LOCK_HASH="$(docker compose exec -T api sh -c 'cat node_modules/.package-lock.sha256 2>/dev/null || true')"
-
-if [[ "$LOCK_HASH" != "$INSTALLED_LOCK_HASH" ]]; then
-  log "Sincronizando dependências no volume node_modules"
-  docker compose exec -T api npm ci
-  docker compose exec -T api sh -c 'sha256sum package-lock.json | cut -d " " -f 1 > node_modules/.package-lock.sha256'
-fi
-
-log "Gerando o Prisma Client"
-docker compose exec -T api npm run prisma:generate
-
-log "Aplicando migrations pendentes do Prisma"
-docker compose exec -T api npm run prisma:migrate:deploy
-
-# Descomentar quando os testes de integração e E2E forem adicionados.
 log "Executando testes"
 docker compose exec -T api npm test
 docker compose exec -T api npm run test:e2e

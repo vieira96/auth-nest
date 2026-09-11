@@ -25,4 +25,5 @@ RUN --mount=type=cache,target=/home/${LOCAL_USER}/.npm,uid=${USER_ID},gid=${GROU
 
 COPY --chown=${USER_ID}:${GROUP_ID} . .
 
+ENTRYPOINT ["./docker-entrypoint.sh"]
 CMD ["npm", "run", "start:dev"]

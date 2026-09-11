@@ -2,7 +2,7 @@
 
 API de autenticação e autorização construída com NestJS. O projeto demonstra a implementação incremental de usuários, papéis (roles), permissões e proteção de rotas administrativas.
 
-> Status: fundação e persistência inicial concluídas. NestJS, TypeScript estrito, aliases, Docker, PostgreSQL, Prisma e a base de usuários estão prontos. Autenticação e autorização serão implementadas nas próximas etapas.
+> Status: fundação e persistência inicial concluídas. NestJS, TypeScript estrito, aliases, Docker, PostgreSQL, Prisma, usuários e roles padrão estão prontos. Autenticação e autorização serão implementadas nas próximas etapas.
 
 ## Objetivo
 
@@ -20,7 +20,7 @@ User --< UserRole >-- Role --< RolePermission >-- Permission
 - Build de compilação validado com tsc-alias
 - Docker Compose com API, PostgreSQL e Redis
 - Docker para desenvolvimento local com hot reload
-- Prisma 7 com migration versionada e tabela users
+- Prisma 7 com migrations versionadas, usuários e roles padrão
 - Base de testes com Vitest, lint com Oxlint e build verificado
 - Configuração de ambiente preparada com .env e .env.example
 
@@ -35,6 +35,10 @@ src/
       dto/                # contratos de entrada e saída
       repositories/       # acesso a persistência
       users.module.ts
+    roles/
+      controllers/
+      services/
+      roles.module.ts
     auth/                 # controllers, services, dto, strategies e guards
     roles/                # controllers, services, dto e repositories
     permissions/          # controllers, services, dto e repositories
@@ -49,6 +53,12 @@ prisma/
   models/
     users/
       user.prisma         # modelos agrupados por domínio
+    roles/
+      role.prisma
+  seed.ts
+  seeds/
+    roles/
+      roles.seed.ts
   migrations/
 ~~~
 
@@ -78,7 +88,7 @@ LOGIN_LOCK_TTL_SECONDS=900
 ./docker-boot-project.sh
 ~~~
 
-O script cria o .env a partir do .env.example se necessário, constrói a imagem, inicia a API, PostgreSQL e Redis, gera o Prisma Client e aplica as migrations já versionadas. Os comandos de testes continuam comentados: os testes atuais podem ser executados pelos comandos da seção de qualidade.
+O script cria o .env a partir do .env.example se necessário, constrói a imagem e inicia a API, PostgreSQL e Redis. Antes de iniciar o Nest, o entrypoint da API gera o Prisma Client, aplica as migrations já versionadas e garante os roles padrão. Ao final, o script executa os testes.
 
 Também é possível iniciar manualmente:
 
@@ -114,19 +124,22 @@ npm install
 npm run start:dev
 ~~~
 
-### Prisma e tabela `users`
+### Prisma, usuários e roles
 
 Os modelos do banco ficam em `prisma/models/`, separados por domínio: por enquanto, `prisma/models/users/user.prisma`. O arquivo `prisma/schema.prisma` mantém apenas a configuração comum do Prisma. Juntos, eles são a única fonte de verdade do banco. O módulo Nest em `src/modules/users/` contém as camadas da aplicação e usa o tipo `User` gerado automaticamente pelo Prisma, sem duplicar o modelo.
 
 ~~~bash
-# criar uma migration após alterar um arquivo em prisma/models/
+# criar e aplicar uma migration após alterar um arquivo em prisma/models/
 npm run prisma:migrate -- --name descricao_da_alteracao
+
+# inserir dados padrão idempotentes, como ADMIN e USER
+npm run prisma:seed
 
 # abrir a interface visual do banco
 npm run prisma:studio
 ~~~
 
-A migration é salva em `prisma/migrations/` e deve ser versionada no Git. A tabela inicial possui `id`, `name`, `email` único, `passwordHash`, `createdAt` e `updatedAt`. A senha nunca é armazenada em texto puro; o hash será gerado na etapa de autenticação.
+A migration é salva em `prisma/migrations/` e deve ser versionada no Git. A tabela `users` possui `id`, `name`, `email` único, `passwordHash`, `createdAt` e `updatedAt`. A tabela `roles` usa UUID automático e contém os valores padrão `ADMIN` e `USER`; o seed pode rodar várias vezes sem duplicar dados. A senha nunca é armazenada em texto puro; o hash será gerado na etapa de autenticação.
 
 O arquivo .env contém valores de desenvolvimento. Para outro ambiente, use .env.example como modelo e substitua todos os segredos.
 
@@ -174,7 +187,8 @@ A CI faz a validação; a ruleset do GitHub é a configuração que realmente im
 - [x] Definir ambiente local e exemplo de variáveis
 - [ ] Integrar @nestjs/config e validar variáveis de ambiente
 - [x] Integrar Prisma e criar a tabela users
-- [ ] Criar roles, permissões e seeds do administrador inicial
+- [x] Criar roles padrão ADMIN e USER
+- [ ] Relacionar usuários às roles e criar permissões
 - [ ] Implementar login JWT e limitação de tentativas com Redis
 - [ ] Proteger /users com ADMIN
 - [x] Criar pipeline de CI com lint, testes, E2E e build
