@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 # Ambiente Docker exclusivo para desenvolvimento local.
 FROM node:24-alpine AS development
 
@@ -16,7 +17,11 @@ RUN chown "${USER_ID}:${GROUP_ID}" /app
 COPY --chown=${USER_ID}:${GROUP_ID} package.json package-lock.json ./
 
 USER ${USER_ID}:${GROUP_ID}
-RUN npm ci
+# Conserva os pacotes baixados entre builds. A camada ainda é invalidada quando
+# package.json ou package-lock.json mudam, mas o npm não baixa tudo novamente.
+RUN --mount=type=cache,target=/home/${LOCAL_USER}/.npm,uid=${USER_ID},gid=${GROUP_ID} \
+    npm ci && \
+    sha256sum package-lock.json | cut -d ' ' -f 1 > node_modules/.package-lock.sha256
 
 COPY --chown=${USER_ID}:${GROUP_ID} . .
 

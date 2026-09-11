@@ -37,23 +37,31 @@ GROUP_ID="${GROUP_ID:-$(id -g)}"
 log "Construindo a imagem e iniciando os containers"
 docker compose up -d --build
 
-# Descomentar quando Prisma for adicionado ao projeto.
-# log "Gerando o Prisma Client"
-# docker compose exec -T api npm run prisma:generate
-#
-# log "Aplicando migrations pendentes do Prisma"
-# docker compose exec -T api npx prisma migrate deploy
+LOCK_HASH="$(sha256sum package-lock.json | cut -d ' ' -f 1)"
+INSTALLED_LOCK_HASH="$(docker compose exec -T api sh -c 'cat node_modules/.package-lock.sha256 2>/dev/null || true')"
+
+if [[ "$LOCK_HASH" != "$INSTALLED_LOCK_HASH" ]]; then
+  log "Sincronizando dependências no volume node_modules"
+  docker compose exec -T api npm ci
+  docker compose exec -T api sh -c 'sha256sum package-lock.json | cut -d " " -f 1 > node_modules/.package-lock.sha256'
+fi
+
+log "Gerando o Prisma Client"
+docker compose exec -T api npm run prisma:generate
+
+log "Aplicando migrations pendentes do Prisma"
+docker compose exec -T api npm run prisma:migrate:deploy
 
 # Descomentar quando os testes de integração e E2E forem adicionados.
-# log "Executando testes"
-# docker compose exec -T api npm test
-# docker compose exec -T api npm run test:e2e
+log "Executando testes"
+docker compose exec -T api npm test
+docker compose exec -T api npm run test:e2e
 
 log "Status dos containers"
 docker compose ps
 
 log "Ambiente pronto"
 printf '%s\n' \
-  "API:        http://localhost:${PORT:-3000}" \
+  "API:        http://localhost:${PORT:-8000}" \
   "PostgreSQL: localhost:${POSTGRES_PORT:-5432}" \
   "Redis:      localhost:${REDIS_PORT:-6379}"

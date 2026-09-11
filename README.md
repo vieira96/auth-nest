@@ -2,7 +2,7 @@
 
 API de autenticação e autorização construída com NestJS. O projeto demonstra a implementação incremental de usuários, papéis (roles), permissões e proteção de rotas administrativas.
 
-> Status: fundação concluída. NestJS, TypeScript estrito, aliases, Docker e ambiente local estão prontos. Persistência, autenticação e autorização serão implementadas nas próximas etapas.
+> Status: fundação e persistência inicial concluídas. NestJS, TypeScript estrito, aliases, Docker, PostgreSQL, Prisma e a base de usuários estão prontos. Autenticação e autorização serão implementadas nas próximas etapas.
 
 ## Objetivo
 
@@ -20,6 +20,7 @@ User --< UserRole >-- Role --< RolePermission >-- Permission
 - Build de compilação validado com tsc-alias
 - Docker Compose com API, PostgreSQL e Redis
 - Docker para desenvolvimento local com hot reload
+- Prisma 7 com migration versionada e tabela users
 - Base de testes com Vitest, lint com Oxlint e build verificado
 - Configuração de ambiente preparada com .env e .env.example
 
@@ -28,12 +29,6 @@ User --< UserRole >-- Role --< RolePermission >-- Permission
 ~~~text
 src/
   modules/
-    hello-world/
-      controllers/
-        hello-world.controller.ts
-      services/
-        hello-world.service.ts
-      hello-world.module.ts
     users/
       controllers/        # camada HTTP
       services/           # regras de negócio
@@ -51,10 +46,13 @@ src/
   app.module.ts
 prisma/
   schema.prisma
+  models/
+    users/
+      user.prisma         # modelos agrupados por domínio
   migrations/
 ~~~
 
-Cada domínio mantém suas camadas internas. Controllers lidam com HTTP, services concentram regras de negócio, DTOs definem contratos de entrada e saída e repositories isolam persistência. Integrações compartilhadas ficam em shared/. O módulo HelloWorld não possui DTO ou repository porque ainda não recebe dados nem persiste informações.
+Cada domínio mantém suas camadas internas. Controllers lidam com HTTP, services concentram regras de negócio, DTOs definem contratos de entrada e saída e repositories isolam persistência. Integrações compartilhadas ficam em shared/.
 
 ## Segurança planejada
 
@@ -80,7 +78,7 @@ LOGIN_LOCK_TTL_SECONDS=900
 ./docker-boot-project.sh
 ~~~
 
-O script cria o .env a partir do .env.example se necessário, constrói a imagem e inicia a API, PostgreSQL e Redis. Os comandos de Prisma e testes de integração/E2E ficam comentados até essas dependências serem implementadas.
+O script cria o .env a partir do .env.example se necessário, constrói a imagem, inicia a API, PostgreSQL e Redis, gera o Prisma Client e aplica as migrations já versionadas. Os comandos de testes continuam comentados: os testes atuais podem ser executados pelos comandos da seção de qualidade.
 
 Também é possível iniciar manualmente:
 
@@ -115,6 +113,20 @@ nvm use
 npm install
 npm run start:dev
 ~~~
+
+### Prisma e tabela `users`
+
+Os modelos do banco ficam em `prisma/models/`, separados por domínio: por enquanto, `prisma/models/users/user.prisma`. O arquivo `prisma/schema.prisma` mantém apenas a configuração comum do Prisma. Juntos, eles são a única fonte de verdade do banco. O módulo Nest em `src/modules/users/` contém as camadas da aplicação e usa o tipo `User` gerado automaticamente pelo Prisma, sem duplicar o modelo.
+
+~~~bash
+# criar uma migration após alterar um arquivo em prisma/models/
+npm run prisma:migrate -- --name descricao_da_alteracao
+
+# abrir a interface visual do banco
+npm run prisma:studio
+~~~
+
+A migration é salva em `prisma/migrations/` e deve ser versionada no Git. A tabela inicial possui `id`, `name`, `email` único, `passwordHash`, `createdAt` e `updatedAt`. A senha nunca é armazenada em texto puro; o hash será gerado na etapa de autenticação.
 
 O arquivo .env contém valores de desenvolvimento. Para outro ambiente, use .env.example como modelo e substitua todos os segredos.
 
@@ -161,7 +173,7 @@ A CI faz a validação; a ruleset do GitHub é a configuração que realmente im
 - [x] Criar Dockerfile, Docker Compose, PostgreSQL e Redis
 - [x] Definir ambiente local e exemplo de variáveis
 - [ ] Integrar @nestjs/config e validar variáveis de ambiente
-- [ ] Integrar Prisma e criar a tabela users
+- [x] Integrar Prisma e criar a tabela users
 - [ ] Criar roles, permissões e seeds do administrador inicial
 - [ ] Implementar login JWT e limitação de tentativas com Redis
 - [ ] Proteger /users com ADMIN
