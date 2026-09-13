@@ -206,7 +206,7 @@ A CI faz a validação; a ruleset do GitHub é a configuração que realmente im
 | REDIS_URL | endereço do Redis |
 | LOGIN_MAX_ATTEMPTS | quantidade permitida de falhas de login |
 | LOGIN_LOCK_TTL_SECONDS | tempo de bloqueio após atingir o limite |
-| ADMIN_EMAIL, ADMIN_PASSWORD | credenciais usadas pelo futuro seed do administrador inicial |
+| ADMIN_NAME, ADMIN_EMAIL, ADMIN_PASSWORD | dados usados pelo seed do administrador inicial |
 
 ## Licença
 

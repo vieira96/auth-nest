@@ -2,6 +2,7 @@ import 'dotenv/config';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../src/generated/prisma/client';
 import { seedRoles } from './seeds/roles/roles.seed';
+import { seedDefaultAdmin } from './seeds/users/default-admin.seed';
 
 const connectionString = process.env.DATABASE_URL;
 
@@ -15,6 +16,7 @@ const prisma = new PrismaClient({
 
 async function main(): Promise<void> {
   await seedRoles(prisma);
+  await seedDefaultAdmin(prisma);
 }
 
 main()
