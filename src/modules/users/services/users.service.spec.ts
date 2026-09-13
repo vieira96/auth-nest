@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { UsersService } from './users.service';
 
 describe('UsersService', () => {
-  it('finds a user by email', async () => {
+  it('encontra um usuário pelo e-mail', async () => {
     const user: User = {
       id: 'a0c7548c-0d33-4b0d-b03a-61ff821df4a6',
       name: 'Maria Silva',

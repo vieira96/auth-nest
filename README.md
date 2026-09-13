@@ -98,6 +98,12 @@ docker compose up --build
 
 O Compose executa npm run start:dev com hot reload. Alterações em src/ são refletidas automaticamente no container.
 
+Para também recriar automaticamente a API quando package.json ou package-lock.json mudarem, use o Compose Watch. Ele fica em primeiro plano; mantenha o terminal aberto durante o desenvolvimento.
+
+~~~bash
+docker compose watch
+~~~
+
 | Serviço | Endereço padrão |
 | --- | --- |
 | API | http://localhost:8000 |
