@@ -31,6 +31,14 @@ services:
       interval: 2s
       timeout: 3s
       retries: 30
+    develop:
+      watch:
+        # O Nest já observa src/. Estas regras tratam mudanças que exigem
+        # recriar o container e sincronizar o volume node_modules.
+        - action: rebuild
+          path: package.json
+        - action: rebuild
+          path: package-lock.json
 
   postgres:
     image: postgres:17-alpine

@@ -4,7 +4,7 @@ import { App } from 'supertest/types';
 import { AppModule } from '@/app.module';
 import { PrismaService } from '@/shared/database/prisma/prisma.service';
 
-describe('Application (e2e)', () => {
+describe('Aplicação (E2E)', () => {
   let app: INestApplication<App>;
 
   beforeEach(async () => {
@@ -20,7 +20,7 @@ describe('Application (e2e)', () => {
     await app.init();
   });
 
-  it('starts successfully', () => {
+  it('inicia com sucesso', () => {
     expect(app).toBeDefined();
     expect(app.getHttpServer()).toBeDefined();
   });

@@ -22,7 +22,7 @@ afterEach(() => {
 });
 
 describe('seedDefaultAdmin', () => {
-  it('creates the default admin and assigns the ADMIN role', async () => {
+  it('cria o administrador padrão e atribui a role ADMIN', async () => {
     process.env.ADMIN_NAME = 'Admin User';
     process.env.ADMIN_EMAIL = 'Admin@Example.com';
     process.env.ADMIN_PASSWORD = 'safe-password';
@@ -60,7 +60,7 @@ describe('seedDefaultAdmin', () => {
     });
   });
 
-  it('does not change the password of an existing admin', async () => {
+  it('não altera a senha de um administrador existente', async () => {
     process.env.ADMIN_NAME = 'Admin User';
     process.env.ADMIN_EMAIL = 'admin@example.com';
     process.env.ADMIN_PASSWORD = 'new-password';
